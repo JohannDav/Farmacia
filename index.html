@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Inventario Farmacia | Búsqueda flexible + Detalle al hacer clic</title>
+    <title>Farmacia Familiar | Auto-exportación al guardar</title>
     <style>
         * {
             margin: 0;
@@ -14,488 +14,676 @@
         body {
             background: linear-gradient(145deg, #e0eafc 0%, #cfdef3 100%);
             font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
             padding: 2rem 1rem;
+            min-height: 100vh;
         }
 
-        /* Contenedor principal: tabla + panel lateral */
         .main-layout {
-            max-width: 1500px;
-            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
             display: flex;
             flex-wrap: wrap;
             gap: 1.8rem;
             align-items: flex-start;
         }
 
-        /* Tarjeta de la tabla (estilo anterior mejorado) */
         .card-table {
             flex: 2.5;
             min-width: 280px;
-            background: rgba(255, 255, 255, 0.94);
-            backdrop-filter: blur(0px);
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 2rem;
-            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.35);
             overflow: hidden;
-            transition: all 0.2s ease;
         }
 
-        /* Panel lateral de detalle (se abre solo al hacer clic) */
-        .detail-sidebar {
+        .sidebar-actions {
             flex: 1.2;
-            min-width: 280px;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-panel, .detail-panel, .sync-panel {
             background: white;
             border-radius: 2rem;
-            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.25);
             overflow: hidden;
-            position: sticky;
-            top: 1.5rem;
-            align-self: flex-start;
-            transition: all 0.2s;
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.2);
         }
 
-        /* Encabezado con lupa y título */
+        .form-header, .detail-header, .sync-header {
+            background: #1e3c72;
+            padding: 1rem 1.5rem;
+            color: white;
+        }
+
+        .form-content, .detail-content, .sync-content {
+            padding: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #1e3c72;
+            font-size: 0.9rem;
+        }
+
+        .form-group input, .form-group textarea {
+            padding: 0.7rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn-primary, .btn-secondary, .btn-success, .btn-warning {
+            padding: 0.7rem 1.2rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #2c5f8a;
+            color: white;
+        }
+        .btn-primary:hover { background: #1e4769; transform: translateY(-2px); }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+        .btn-secondary:hover { background: #cbd5e1; }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        .btn-success:hover { background: #059669; }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+        .btn-warning:hover { background: #d97706; }
+
+        .button-group {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+
         .search-header {
             background: white;
-            padding: 1.2rem 1.8rem;
+            padding: 1rem 1.5rem;
             border-bottom: 1px solid #e2e8f0;
             display: flex;
             flex-wrap: wrap;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
             gap: 1rem;
         }
 
-        .title-section h1 {
-            font-size: 1.65rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, #1e3c72, #2b4c7c);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            letter-spacing: -0.3px;
-        }
-
-        .title-section p {
-            font-size: 0.85rem;
-            color: #4a5568;
-            margin-top: 4px;
-        }
-
-        /* Grupo de búsqueda + botón borrar */
-        .search-group {
+        .search-wrapper {
             display: flex;
             gap: 10px;
             align-items: center;
             flex-wrap: wrap;
         }
 
-        .search-wrapper {
-            display: flex;
-            align-items: center;
-            background: #f1f5f9;
-            border-radius: 60px;
-            padding: 0.2rem 0.2rem 0.2rem 1.2rem;
-            box-shadow: inset 0 1px 2px #00000010, 0 1px 2px white;
-            transition: all 0.2s;
-            border: 1px solid #cbd5e1;
-        }
-
-        .search-wrapper:focus-within {
-            background: white;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
-        }
-
         .search-input {
-            border: none;
-            background: transparent;
-            padding: 0.65rem 0.2rem;
-            font-size: 1rem;
+            padding: 0.6rem 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 40px;
             width: 220px;
-            outline: none;
-            font-weight: 500;
-            color: #0f172a;
+            font-size: 0.9rem;
         }
 
-        .search-input::placeholder {
-            color: #94a3b8;
-            font-weight: normal;
-            font-style: italic;
-        }
-
-        .lupa-btn {
-            background: #2c5f8a;
-            border: none;
-            border-radius: 40px;
-            padding: 0.6rem 1.2rem;
-            margin-left: 0.5rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: white;
-            font-weight: 600;
-            transition: all 0.2s;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-
-        .lupa-btn:hover {
-            background: #1e4769;
-            transform: scale(0.97);
-        }
-
-        .clear-btn {
-            background: #e2e8f0;
-            border: none;
-            border-radius: 40px;
-            padding: 0.6rem 1.2rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-weight: 600;
-            color: #1e293b;
-            transition: all 0.2s;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-
-        .clear-btn:hover {
-            background: #cbd5e1;
-            transform: scale(0.97);
-        }
-
-        .result-badge {
-            background: #eef2ff;
-            padding: 0.3rem 0.9rem;
-            border-radius: 40px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: #1e3c72;
-        }
-
-        /* contenedor scroll para títulos fijos */
         .table-container {
             overflow-x: auto;
-            max-height: 60vh;
-            position: relative;
-            border-radius: 0 0 1.5rem 1.5rem;
-            scrollbar-width: thin;
+            max-height: 55vh;
+            overflow-y: auto;
         }
 
-        /* Tabla moderna */
         .inventory-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.9rem;
-            background: white;
-            min-width: 680px;
-        }
-
-        /* Cabecera fija */
-        .inventory-table thead tr {
-            position: sticky;
-            top: 0;
-            background: #1e2f41;
-            z-index: 20;
+            font-size: 0.85rem;
+            min-width: 700px;
         }
 
         .inventory-table th {
-            padding: 1rem 1rem;
-            text-align: left;
-            font-weight: 600;
+            position: sticky;
+            top: 0;
+            background: #1e2f41;
             color: white;
-            background-color: #1e2f41;
-            border-bottom: 2px solid #2d4a6e;
-            font-size: 0.9rem;
+            padding: 0.8rem 1rem;
+            text-align: left;
         }
 
         .inventory-table td {
-            padding: 0.9rem 1rem;
+            padding: 0.8rem 1rem;
             border-bottom: 1px solid #e9edf2;
-            color: #1e293b;
-            vertical-align: middle;
             cursor: pointer;
-            transition: background 0.1s;
-        }
-
-        .inventory-table tbody tr {
-            transition: 0.05s linear;
         }
 
         .inventory-table tbody tr:hover {
             background-color: #eef2ff;
         }
 
-        /* fila activa (seleccionada) */
         .inventory-table tbody tr.active-row {
             background-color: #d9e9fa;
-            border-left: 4px solid #2c5f8a;
-            box-shadow: inset 0 0 0 1px #bdd9f0;
+            border-left: 3px solid #2c5f8a;
         }
 
-        .cantidad-badge {
-            background: #e2f0e8;
-            color: #1f6e43;
+        .inline-input {
+            width: 100%;
+            padding: 0.4rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-family: inherit;
+        }
+        .inline-textarea {
+            width: 100%;
+            padding: 0.4rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 50px;
+        }
+        .inline-date {
+            width: 100%;
+            padding: 0.4rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+        .inline-number {
+            width: 100%;
+            padding: 0.4rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        .edit-btn, .delete-btn {
+            padding: 0.3rem 0.7rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.75rem;
             font-weight: 600;
-            padding: 0.25rem 0.8rem;
-            border-radius: 40px;
-            display: inline-block;
-            font-size: 0.85rem;
-            min-width: 65px;
-            text-align: center;
         }
+        .edit-btn { background: #eab308; color: white; margin-right: 5px; }
+        .delete-btn { background: #ef4444; color: white; }
 
-        .fecha-badge {
-            font-family: monospace;
-            background: #fff1e0;
-            color: #b45309;
-            padding: 0.2rem 0.6rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            display: inline-block;
-        }
-
-        .sustancias-text {
-            font-size: 0.85rem;
-            color: #2c3e50;
-            line-height: 1.4;
-            word-break: break-word;
-            white-space: normal;
-        }
-
-        .nombre-med {
-            font-weight: 700;
-            color: #0c4a6e;
-        }
-
-        .empty-row td {
-            text-align: center;
-            padding: 2.5rem !important;
-            background: #fef9e3;
-            font-style: italic;
-            color: #b45309;
-        }
-
-        /* Panel de detalle completo (sin puntos suspensivos) */
-        .detail-header {
-            background: #1e3c72;
-            padding: 1.2rem 1.5rem;
+        .file-input-label {
+            background: #6366f1;
             color: white;
-        }
-
-        .detail-header h3 {
-            font-weight: 600;
-            font-size: 1.3rem;
-            display: flex;
+            padding: 0.6rem 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
+            font-weight: 600;
+            width: 100%;
+            justify-content: center;
         }
+        .file-input-label:hover { background: #4f46e5; }
 
-        .detail-content {
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.2rem;
-        }
-
-        .detail-field {
-            border-bottom: 1px dashed #e2e8f0;
-            padding-bottom: 0.8rem;
-        }
-
-        .field-label {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 700;
-            color: #5b6e8c;
-        }
-
-        .field-value {
-            font-size: 1rem;
-            font-weight: 500;
-            color: #0c2f4b;
-            margin-top: 6px;
-            word-break: break-word;
-            white-space: normal;
-            line-height: 1.4;
-        }
-
-        .sustancias-completas {
-            background: #f8fafc;
-            padding: 0.8rem;
-            border-radius: 16px;
-            font-size: 0.9rem;
-            border-left: 3px solid #2c5f8a;
-            font-weight: 500;
-        }
-
-        .empty-detail {
-            padding: 2rem;
+        .empty-state {
             text-align: center;
+            padding: 3rem;
             color: #6c757d;
-            font-style: italic;
         }
 
-        .footer-note {
-            background: #f1f5f9;
-            padding: 0.7rem 1.5rem;
-            font-size: 0.7rem;
-            color: #475569;
-            text-align: right;
-            border-top: 1px solid #e2e8f0;
+        .empty-state h3 {
+            margin-bottom: 1rem;
+            color: #1e3c72;
         }
 
-        @media (max-width: 850px) {
-            .main-layout {
-                flex-direction: column;
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
             }
-            .detail-sidebar {
-                position: static;
-                width: 100%;
+            to {
+                transform: translateX(0);
+                opacity: 1;
             }
+        }
+
+        @media (max-width: 900px) {
+            .main-layout { flex-direction: column; }
         }
     </style>
 </head>
 <body>
 
 <div class="main-layout">
-    <!-- TABLA PRINCIPAL (con diseño anterior mejorado) -->
+    <!-- TABLA PRINCIPAL -->
     <div class="card-table">
         <div class="search-header">
-            <div class="title-section">
-                <h1>💊 Farmacia Quirino González</h1>
-                <p>Inventario · Nombres comerciales · Composición completa</p>
+            <div>
+                <h1>💊 Farmacia Familiar</h1>
+                <p style="font-size: 0.8rem;">Al guardar un medicamento, se exporta automáticamente el inventario completo</p>
             </div>
-            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                <div class="search-group">
-                    <div class="search-wrapper">
-                        <input type="text" id="searchInput" class="search-input" placeholder="Ej: paracetamol fenilefrina o Exalver" autocomplete="off">
-                        <button id="lupaButton" class="lupa-btn" aria-label="Buscar medicamento">
-                            <span>🔍</span>
-                            <span>Buscar</span>
-                        </button>
-                    </div>
-                    <button id="clearSearchBtn" class="clear-btn" title="Borrar búsqueda">
-                        <span>✖️</span> Borrar
-                    </button>
-                </div>
-                <div class="result-badge" id="resultCount">📋 0 medicamentos</div>
+            <div class="search-wrapper">
+                <input type="text" id="searchInput" class="search-input" placeholder="Buscar...">
+                <button id="searchBtn" class="btn-primary">🔍 Buscar</button>
+                <button id="clearSearchBtn" class="btn-secondary">✖️ Borrar</button>
             </div>
         </div>
         <div class="table-container">
-            <table class="inventory-table" id="medTable">
+            <table class="inventory-table" id="inventoryTable">
                 <thead>
                     <tr>
-                        <th>Nombre comercial</th>
-                        <th>Fecha de caducidad</th>
-                        <th>Sustancias (composición completa)</th>
-                        <th>Cantidad (Inventario)</th>
+                        <th style="width: 20%">Nombre comercial del medicamento</th>
+                        <th style="width: 12%">Fecha de caducidad</th>
+                        <th style="width: 45%">Sustancias (composición)</th>
+                        <th style="width: 13%">Cantidad</th>
+                        <th style="width: 10%">Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    <!-- datos dinámicos -->
+                    <tr>
+                        <td colspan="5" class="empty-state">
+                            <h3>📭 No hay medicamentos cargados</h3>
+                            <p>Para comenzar, importa un archivo TXT con el inventario</p>
+                            <p style="margin-top: 1rem;">👇 Usa el botón "Importar archivo TXT" en el panel lateral</p>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
-        <div class="footer-note">
-            🔎 Haga clic en cualquier fila para ver el detalle COMPLETO (sin puntos suspensivos). La búsqueda acepta palabras en cualquier orden.
+        <div class="search-header" style="border-top: 1px solid #e2e8f0;">
+            <div style="font-size: 0.75rem; color: #475569;">
+                📋 Puedes editar directamente en la tabla o usar el formulario. Al guardar, se descarga automáticamente el TXT.
+            </div>
+            <div id="lastExportInfo" style="font-size: 0.7rem; color: #10b981;"></div>
         </div>
     </div>
 
-    <!-- PANEL LATERAL DE DETALLE (se abre solo al hacer clic en una fila) -->
-    <div class="detail-sidebar" id="detailPanel">
-        <div class="detail-header">
-            <h3>📋 Detalle completo</h3>
+    <!-- PANELES LATERALES -->
+    <div class="sidebar-actions">
+        <!-- Formulario CRUD -->
+        <div class="form-panel">
+            <div class="form-header">
+                <h3>✏️ Agregar / Editar medicamento</h3>
+            </div>
+            <div class="form-content">
+                <div class="form-group">
+                    <label>💊 Nombre comercial del medicamento *</label>
+                    <input type="text" id="medNombre" placeholder="Ej: Exalver, Tempra Forte...">
+                </div>
+                <div class="form-group">
+                    <label>📅 Fecha de caducidad *</label>
+                    <input type="date" id="medCaducidad">
+                </div>
+                <div class="form-group">
+                    <label>⚕️ Sustancias (composición completa) *</label>
+                    <textarea id="medSustancias" placeholder="Ej: Paracetamol 500mg, Fenilefrina 5mg..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>📦 Cantidad en inventario *</label>
+                    <input type="number" id="medCantidad" placeholder="0">
+                </div>
+                <div class="button-group">
+                    <button id="guardarBtn" class="btn-primary">💾 Guardar y exportar TXT</button>
+                    <button id="cancelarBtn" class="btn-secondary">↺ Cancelar edición</button>
+                    <button id="addNewBtn" class="btn-success">➕ Nuevo medicamento</button>
+                </div>
+            </div>
         </div>
-        <div id="detailContent">
-            <div class="empty-detail">
-                💡 Selecciona un medicamento<br>haciendo clic en su fila
+
+        <!-- Panel de sincronización -->
+        <div class="sync-panel">
+            <div class="sync-header">
+                <h3>🔄 Sincronización familiar</h3>
+            </div>
+            <div class="sync-content">
+                <div class="button-group" style="flex-direction: column;">
+                    <label class="file-input-label">
+                        📂 Importar archivo TXT
+                        <input type="file" id="importFile" accept=".txt" style="display: none;">
+                    </label>
+                    <button id="exportOnlyBtn" class="btn-warning">📤 Exportar solo TXT (sin guardar)</button>
+                </div>
+                <div style="margin-top: 1rem; font-size: 0.75rem; color: #6c757d; background: #f1f5f9; padding: 0.8rem; border-radius: 12px;">
+                    💡 <strong>¿Cómo funciona?</strong><br><br>
+                    1️⃣ <strong>IMPORTAR TXT:</strong> Carga un archivo con todo el inventario.<br><br>
+                    2️⃣ <strong>GUARDAR:</strong> Al agregar/editar un medicamento, se descarga automáticamente un TXT con TODO el inventario actualizado.<br><br>
+                    3️⃣ <strong>COMPARTIR:</strong> Envía ese TXT a tu familia. Ellos lo importan y ¡todos tienen los mismos datos!
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de detalle -->
+        <div class="detail-panel">
+            <div class="detail-header">
+                <h3>📋 Detalle completo del medicamento</h3>
+            </div>
+            <div id="detailContent" style="padding: 1.5rem;">
+                <div style="text-align: center; color: #6c757d;">
+                    💡 Haz clic en cualquier medicamento de la tabla<br>para ver toda su información aquí
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // ======================= BASE DE DATOS DE MEDICAMENTOS (con nombres comerciales y composición completa) =======================
-    const medicamentosData = [
-        { 
-            nombre: "Exalver", 
-            caducidad: "2025-10-15", 
-            sustancias: "Paracetamol 500mg, Fenilefrina 5mg, Dextrometorfano 15mg",
-            cantidad: 124 
-        },
-        { 
-            nombre: "Tempra Forte", 
-            caducidad: "2026-02-20", 
-            sustancias: "Paracetamol 650mg, Cafeína 30mg",
-            cantidad: 87 
-        },
-        { 
-            nombre: "Advil Ultra", 
-            caducidad: "2025-05-12", 
-            sustancias: "Ibuprofeno 400mg, Lisina 150mg",
-            cantidad: 210 
-        },
-        { 
-            nombre: "Amoxidal Duo", 
-            caducidad: "2024-12-01", 
-            sustancias: "Amoxicilina 875mg, Ácido Clavulánico 125mg",
-            cantidad: 45 
-        },
-        { 
-            nombre: "Flutox", 
-            caducidad: "2026-08-30", 
-            sustancias: "Dextrometorfano 20mg, Guaifenesina 200mg, Clorfenamina 4mg",
-            cantidad: 63 
-        },
-        { 
-            nombre: "Zyrtec D", 
-            caducidad: "2025-11-11", 
-            sustancias: "Cetirizina 10mg, Pseudoefedrina 120mg",
-            cantidad: 95 
-        },
-        { 
-            nombre: "Omeprazol MK", 
-            caducidad: "2026-03-03", 
-            sustancias: "Omeprazol 20mg (gránulos gastrorresistentes)",
-            cantidad: 158 
-        },
-        { 
-            nombre: "Losacor H", 
-            caducidad: "2025-07-18", 
-            sustancias: "Losartán 50mg, Hidroclorotiazida 12.5mg",
-            cantidad: 112 
-        },
-        { 
-            nombre: "Broncodal", 
-            caducidad: "2024-09-05", 
-            sustancias: "Salbutamol 2mg, Bromhexina 8mg, Guaifenesina 100mg",
-            cantidad: 38 
-        },
-        { 
-            nombre: "Metfoglicon", 
-            caducidad: "2026-01-22", 
-            sustancias: "Metformina 850mg, Glibenclamida 5mg",
-            cantidad: 204 
-        }
-    ];
+    // ==================== GESTIÓN DE DATOS ====================
+    let medicamentos = [];
+    let editandoId = null;
+    let autoSaveTimeout = null;
 
-    // Función para formatear fecha (YYYY-MM-DD -> DD/MM/YYYY)
+    function generateId() {
+        return Date.now() + '-' + Math.random().toString(36).substr(2, 8);
+    }
+
+    function guardarDatosLocal() {
+        localStorage.setItem('farmacia_medicamentos', JSON.stringify(medicamentos));
+        localStorage.setItem('farmacia_datos_cargados', 'true');
+    }
+
+    function cargarDatosLocal() {
+        const guardado = localStorage.getItem('farmacia_medicamentos');
+        const cargados = localStorage.getItem('farmacia_datos_cargados');
+        
+        if (guardado && cargados === 'true') {
+            medicamentos = JSON.parse(guardado);
+            renderizarTabla();
+        } else {
+            medicamentos = [];
+            renderizarTablaVacia();
+        }
+    }
+
+    function mostrarToast(mensaje, tipo = 'success') {
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.style.background = tipo === 'success' ? '#10b981' : '#ef4444';
+        toast.innerHTML = mensaje;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+
+    // ==================== EXPORTAR INVENTARIO COMPLETO ====================
+    function exportarInventarioCompleto(mostrarToastMsg = true) {
+        if (medicamentos.length === 0) {
+            if (mostrarToastMsg) mostrarToast('⚠️ No hay medicamentos para exportar', 'error');
+            return false;
+        }
+        
+        const ahora = new Date();
+        const fechaStr = ahora.toISOString().slice(0, 19).replace(/:/g, '-');
+        const nombreArchivo = `farmacia_inventario_${fechaStr}.txt`;
+        
+        let contenido = `=== INVENTARIO COMPLETO - FARMACIA FAMILIAR ===\n`;
+        contenido += `Fecha de exportación: ${ahora.toLocaleString()}\n`;
+        contenido += `Total de medicamentos: ${medicamentos.length}\n`;
+        contenido += `================================================\n\n`;
+        
+        medicamentos.forEach((med, index) => {
+            contenido += `[MEDICAMENTO ${index + 1}]\n`;
+            contenido += `ID: ${med.id}\n`;
+            contenido += `Nombre comercial: ${med.nombre}\n`;
+            contenido += `Fecha de caducidad: ${med.caducidad}\n`;
+            contenido += `Sustancias: ${med.sustancias}\n`;
+            contenido += `Cantidad: ${med.cantidad}\n`;
+            contenido += `------------------------------------------------\n`;
+        });
+        
+        contenido += `\n================================================\n`;
+        contenido += `📌 Para importar este archivo: usa el botón "Importar archivo TXT" en la aplicación\n`;
+        
+        const blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = nombreArchivo;
+        link.click();
+        URL.revokeObjectURL(link.href);
+        
+        const infoDiv = document.getElementById('lastExportInfo');
+        infoDiv.innerHTML = `✅ Exportado: ${ahora.toLocaleTimeString()} (${medicamentos.length} medicamentos)`;
+        setTimeout(() => {
+            if (infoDiv.innerHTML.includes('✅')) {
+                infoDiv.innerHTML = `📋 Inventario actualizado`;
+            }
+        }, 3000);
+        
+        if (mostrarToastMsg) mostrarToast(`✅ Inventario exportado: ${medicamentos.length} medicamentos`);
+        return true;
+    }
+
+    // ==================== IMPORTAR DESDE TXT ====================
+    function importarInventarioDesdeTXT(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const contenido = e.target.result;
+            const lines = contenido.split('\n');
+            
+            const nuevosMedicamentos = [];
+            let medicamentoActual = {};
+            let dentroDeMedicamento = false;
+            
+            for (let i = 0; i < lines.length; i++) {
+                const linea = lines[i].trim();
+                
+                if (linea.startsWith('[MEDICAMENTO')) {
+                    if (dentroDeMedicamento && medicamentoActual.nombre && medicamentoActual.sustancias) {
+                        nuevosMedicamentos.push({ ...medicamentoActual });
+                    }
+                    medicamentoActual = {};
+                    dentroDeMedicamento = true;
+                }
+                else if (linea.startsWith('ID:')) {
+                    medicamentoActual.id = linea.replace('ID:', '').trim();
+                }
+                else if (linea.startsWith('Nombre comercial:')) {
+                    medicamentoActual.nombre = linea.replace('Nombre comercial:', '').trim();
+                }
+                else if (linea.startsWith('Fecha de caducidad:')) {
+                    medicamentoActual.caducidad = linea.replace('Fecha de caducidad:', '').trim();
+                }
+                else if (linea.startsWith('Sustancias:')) {
+                    medicamentoActual.sustancias = linea.replace('Sustancias:', '').trim();
+                }
+                else if (linea.startsWith('Cantidad:')) {
+                    const cantStr = linea.replace('Cantidad:', '').trim();
+                    medicamentoActual.cantidad = parseInt(cantStr) || 0;
+                }
+            }
+            
+            if (dentroDeMedicamento && medicamentoActual.nombre && medicamentoActual.sustancias) {
+                nuevosMedicamentos.push({ ...medicamentoActual });
+            }
+            
+            if (nuevosMedicamentos.length > 0) {
+                nuevosMedicamentos.forEach(med => {
+                    if (!med.id) med.id = generateId();
+                });
+                
+                medicamentos = nuevosMedicamentos;
+                guardarDatosLocal();
+                renderizarTabla();
+                mostrarToast(`✅ Importación exitosa: ${medicamentos.length} medicamentos`);
+            } else {
+                mostrarToast('❌ El archivo no tiene un formato válido', 'error');
+            }
+        };
+        reader.readAsText(file, 'UTF-8');
+    }
+
+    // ==================== CRUD CON FORMULARIO Y AUTO-EXPORTACIÓN ====================
+    function guardarMedicamento() {
+        const nombre = document.getElementById('medNombre').value.trim();
+        const caducidad = document.getElementById('medCaducidad').value;
+        const sustancias = document.getElementById('medSustancias').value.trim();
+        const cantidad = parseInt(document.getElementById('medCantidad').value);
+        
+        if (!nombre || !caducidad || !sustancias || isNaN(cantidad)) {
+            mostrarToast('❌ Completa todos los campos', 'error');
+            return;
+        }
+        
+        if (editandoId !== null) {
+            // Editar existente
+            const index = medicamentos.findIndex(m => m.id === editandoId);
+            if (index !== -1) {
+                medicamentos[index] = { ...medicamentos[index], nombre, caducidad, sustancias, cantidad };
+                guardarDatosLocal();
+                mostrarToast(`✅ "${nombre}" actualizado`);
+            }
+            editandoId = null;
+            document.querySelector('.form-header h3').innerHTML = '✏️ Agregar / Editar medicamento';
+        } else {
+            // Agregar nuevo
+            const nuevoMed = { id: generateId(), nombre, caducidad, sustancias, cantidad };
+            medicamentos.push(nuevoMed);
+            guardarDatosLocal();
+            mostrarToast(`✅ "${nombre}" agregado al inventario`);
+        }
+        
+        limpiarFormulario();
+        renderizarTabla();
+        
+        // 🔥 AUTO-EXPORTAR después de guardar
+        exportarInventarioCompleto(true);
+    }
+    
+    function agregarNuevoMedicamento() {
+        limpiarFormulario();
+        editandoId = null;
+        document.querySelector('.form-header h3').innerHTML = '✏️ Agregar nuevo medicamento';
+        document.getElementById('medNombre').focus();
+    }
+    
+    function editarMedicamentoDesdeFormulario(id) {
+        const med = medicamentos.find(m => m.id === id);
+        if (!med) return;
+        editandoId = id;
+        document.getElementById('medNombre').value = med.nombre;
+        document.getElementById('medCaducidad').value = med.caducidad;
+        document.getElementById('medSustancias').value = med.sustancias;
+        document.getElementById('medCantidad').value = med.cantidad;
+        document.querySelector('.form-header h3').innerHTML = '✏️ Editando medicamento';
+        document.querySelector('.form-panel').scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    function eliminarMedicamento(id) {
+        const med = medicamentos.find(m => m.id === id);
+        if (!med) return;
+        
+        if (confirm(`¿Eliminar "${med.nombre}"?`)) {
+            medicamentos = medicamentos.filter(m => m.id !== id);
+            guardarDatosLocal();
+            mostrarToast(`🗑️ "${med.nombre}" eliminado`);
+            if (editandoId === id) limpiarFormulario();
+            renderizarTabla();
+            // Auto-exportar después de eliminar
+            exportarInventarioCompleto(true);
+        }
+    }
+    
+    function limpiarFormulario() {
+        document.getElementById('medNombre').value = '';
+        document.getElementById('medCaducidad').value = '';
+        document.getElementById('medSustancias').value = '';
+        document.getElementById('medCantidad').value = '';
+        editandoId = null;
+        document.querySelector('.form-header h3').innerHTML = '✏️ Agregar / Editar medicamento';
+    }
+
+    // ==================== ACTUALIZAR DESDE TABLA INLINE ====================
+    function actualizarMedicamentosDesdeTabla() {
+        const filas = document.querySelectorAll('#tableBody tr');
+        if (filas.length === 0 || (filas.length === 1 && filas[0].querySelector('.empty-state'))) return;
+        
+        const nuevosMedicamentos = [];
+        filas.forEach(fila => {
+            const id = fila.getAttribute('data-id');
+            if (!id) return;
+            
+            const nombreInput = fila.querySelector('.inline-input');
+            const fechaInput = fila.querySelector('.inline-date');
+            const sustanciasTextarea = fila.querySelector('.inline-textarea');
+            const cantidadInput = fila.querySelector('.inline-number');
+            
+            if (nombreInput && sustanciasTextarea) {
+                const nombre = nombreInput.value.trim();
+                const caducidad = fechaInput ? fechaInput.value : "2025-12-31";
+                const sustancias = sustanciasTextarea.value.trim();
+                const cantidad = cantidadInput ? parseInt(cantidadInput.value) || 0 : 0;
+                
+                if (nombre && sustancias) {
+                    nuevosMedicamentos.push({
+                        id: id,
+                        nombre: nombre,
+                        caducidad: caducidad,
+                        sustancias: sustancias,
+                        cantidad: cantidad
+                    });
+                }
+            }
+        });
+        
+        if (nuevosMedicamentos.length > 0) {
+            medicamentos = nuevosMedicamentos;
+            guardarDatosLocal();
+        }
+    }
+
+    function autoGuardarCambios() {
+        if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = setTimeout(() => {
+            actualizarMedicamentosDesdeTabla();
+        }, 500);
+    }
+
+    // ==================== RENDERIZADO ====================
     function formatearFecha(fechaISO) {
         if (!fechaISO) return "N/A";
         const partes = fechaISO.split("-");
         if (partes.length !== 3) return fechaISO;
         return `${partes[2]}/${partes[1]}/${partes[0]}`;
     }
-
-    // Escapar HTML para seguridad
+    
     function escapeHtml(str) {
         if (!str) return "";
         return str.replace(/[&<>]/g, function(m) {
@@ -503,249 +691,154 @@
             if (m === '<') return '&lt;';
             if (m === '>') return '&gt;';
             return m;
-        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-            return c;
         });
     }
-
-    // ---------- BÚSQUEDA INTELIGENTE: permite palabras desordenadas (por ejemplo "fenilefrina paracetamol") ----------
-    // Recibe un string query, lo divide en palabras (ignorando comas y espacios múltiples)
-    // Retorna true si TODAS las palabras están presentes en el texto objetivo (nombre + sustancias)
-    function textoCoincideConPalabras(textoObjetivo, queryRaw) {
-        if (!queryRaw || queryRaw.trim() === "") return true;
-        // Limpieza: separar por espacios y filtrar términos vacíos, eliminar comas extra (no afecta)
-        let palabras = queryRaw.toLowerCase().split(/\s+/).filter(p => p.length > 0);
-        if (palabras.length === 0) return true;
-        const textoLower = textoObjetivo.toLowerCase();
-        // Todas las palabras deben estar incluidas en el texto (sin importar orden)
-        return palabras.every(palabra => textoLower.includes(palabra));
-    }
-
-    // Filtro principal: si el query está vacío retorna todo. 
-    // Sino, busca que el nombre comercial o las sustancias contengan TODAS las palabras (en cualquier orden)
-    function buscarMedicamentos(queryRaw) {
-        if (!queryRaw || queryRaw.trim() === "") {
-            return [...medicamentosData];
-        }
-        const query = queryRaw.trim();
-        // Para cada medicamento, creamos un string combinado: nombre + " " + sustancias
-        return medicamentosData.filter(med => {
-            const textoCompleto = (med.nombre + " " + med.sustancias).toLowerCase();
-            // Dividir query en palabras
-            const palabras = query.toLowerCase().split(/\s+/).filter(p => p.length > 0);
-            if (palabras.length === 0) return true;
-            return palabras.every(palabra => textoCompleto.includes(palabra));
-        });
-    }
-
-    // Renderiza la tabla completa según array de medicamentos (filtrados)
-    function renderizarTabla(medsFiltrados) {
-        const tbody = document.getElementById('tableBody');
-        if (!tbody) return;
-
-        if (medsFiltrados.length === 0) {
-            tbody.innerHTML = `<tr class="empty-row"><td colspan="4">🔍 No se encontraron medicamentos. Prueba con otras palabras (sin comas).</td></tr>`;
-            document.getElementById('resultCount').innerHTML = `⚠️ 0 resultados`;
-            return;
-        }
-
-        let html = '';
-        medsFiltrados.forEach((med, idx) => {
-            const fechaFormateada = formatearFecha(med.caducidad);
-            // Mostramos las sustancias sin puntos suspensivos, con ajuste de línea.
-            html += `
-                <tr data-med-idx="${idx}" data-nombre="${escapeHtml(med.nombre)}" data-cad="${med.caducidad}" data-sust="${escapeHtml(med.sustancias)}" data-cant="${med.cantidad}">
-                    <td class="nombre-med">${escapeHtml(med.nombre)}</td>
-                    <td><span class="fecha-badge">${fechaFormateada}</span></td>
-                    <td class="sustancias-text">${escapeHtml(med.sustancias)}</td>
-                    <td><span class="cantidad-badge">${med.cantidad} uds</span></td>
-                </tr>
-            `;
-        });
-        tbody.innerHTML = html;
-        const resultadoTexto = medsFiltrados.length === 1 ? `${medsFiltrados.length} resultado` : `${medsFiltrados.length} resultados`;
-        document.getElementById('resultCount').innerHTML = `📋 ${resultadoTexto}`;
-
-        // Después de renderizar, adjuntar evento de clic a cada fila para mostrar el detalle completo en el panel lateral
-        const filas = document.querySelectorAll('#tableBody tr');
-        filas.forEach((fila, index) => {
-            fila.addEventListener('click', (e) => {
-                // Evitar que el clic se propague si es interno (pero está bien)
-                e.stopPropagation();
-                // Extraer datos desde atributos o desde celdas para mostrar detalle completo y sin puntos suspensivos
-                const nombre = fila.querySelector('td:first-child')?.innerText || '';
-                const sustanciasCelda = fila.querySelector('td:nth-child(3)')?.innerText || '';
-                const cantidadSpan = fila.querySelector('.cantidad-badge')?.innerText || '';
-                const fechaSpan = fila.querySelector('.fecha-badge')?.innerText || '';
-                
-                // Buscar el objeto original en el array filtrado (para mantener fidelidad)
-                const medObj = medsFiltrados.find(m => m.nombre === nombre && m.sustancias === sustanciasCelda);
-                if (medObj) {
-                    mostrarDetalleCompleto(medObj);
-                } else {
-                    // Fallback: construir un objeto con los datos leídos
-                    const cantidadNum = parseInt(cantidadSpan) || 0;
-                    let fechaRaw = "";
-                    // Intentar reconstruir fecha ISO desde el texto formateado? No es necesario, pero usaremos la caducidad del atributo si existe
-                    const fechaIsoAttr = fila.getAttribute('data-cad');
-                    const objFallback = {
-                        nombre: nombre,
-                        caducidad: fechaIsoAttr || "",
-                        sustancias: sustanciasCelda,
-                        cantidad: cantidadNum
-                    };
-                    mostrarDetalleCompleto(objFallback);
-                }
-
-                // Resaltar fila activa y eliminar clase de otras
-                document.querySelectorAll('#tableBody tr').forEach(tr => tr.classList.remove('active-row'));
-                fila.classList.add('active-row');
-            });
-        });
-    }
-
-    // Función que llena el panel lateral con TODA la información (sin abreviaturas)
-    function mostrarDetalleCompleto(medicamento) {
+    
+    function mostrarDetalleCompleto(med) {
         const detailContainer = document.getElementById('detailContent');
         if (!detailContainer) return;
-        const fechaLegible = medicamento.caducidad ? formatearFecha(medicamento.caducidad) : "Fecha no especificada";
-        // Mostramos composición completa tal cual, sin truncar
+        
+        const fechaLegible = formatearFecha(med.caducidad);
         detailContainer.innerHTML = `
-            <div class="detail-content">
-                <div class="detail-field">
-                    <div class="field-label">💊 NOMBRE COMERCIAL</div>
-                    <div class="field-value" style="font-size:1.2rem; font-weight:700;">${escapeHtml(medicamento.nombre)}</div>
+            <div style="display:flex;flex-direction:column;gap:1.2rem;">
+                <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem;">
+                    <strong style="color: #1e3c72; font-size: 0.7rem; text-transform: uppercase;">💊 NOMBRE COMERCIAL</strong>
+                    <div style="font-size: 1.2rem; font-weight: 700; color: #0c4a6e; margin-top: 0.3rem;">${escapeHtml(med.nombre)}</div>
                 </div>
-                <div class="detail-field">
-                    <div class="field-label">📅 FECHA DE CADUCIDAD</div>
-                    <div class="field-value">${escapeHtml(fechaLegible)}</div>
+                <div>
+                    <strong style="color: #1e3c72; font-size: 0.7rem; text-transform: uppercase;">📅 FECHA DE CADUCIDAD</strong>
+                    <div style="margin-top: 0.3rem;"><span style="background: #fff1e0; padding: 0.3rem 0.8rem; border-radius: 20px;">${fechaLegible}</span></div>
                 </div>
-                <div class="detail-field">
-                    <div class="field-label">⚕️ COMPOSICIÓN COMPLETA (sustancias activas)</div>
-                    <div class="sustancias-completas">${escapeHtml(medicamento.sustancias)}</div>
-                    <div class="field-value" style="font-size:0.75rem; margin-top:6px;">✓ Información detallada sin abreviaturas</div>
+                <div>
+                    <strong style="color: #1e3c72; font-size: 0.7rem; text-transform: uppercase;">⚕️ COMPOSICIÓN COMPLETA</strong>
+                    <div style="background: #f8fafc; padding: 0.8rem; border-radius: 12px; margin-top: 0.3rem; border-left: 3px solid #2c5f8a; line-height: 1.4;">
+                        ${escapeHtml(med.sustancias)}
+                    </div>
                 </div>
-                <div class="detail-field">
-                    <div class="field-label">📦 STOCK EN INVENTARIO</div>
-                    <div class="field-value"><span style="background:#e0f2e9; padding:0.3rem 1rem; border-radius:40px; font-weight:bold;">${medicamento.cantidad} unidades</span></div>
+                <div>
+                    <strong style="color: #1e3c72; font-size: 0.7rem; text-transform: uppercase;">📦 STOCK EN INVENTARIO</strong>
+                    <div style="margin-top: 0.3rem;"><span style="background: #e0f2e9; padding: 0.3rem 1rem; border-radius: 40px; font-weight: 600;">${med.cantidad} unidades</span></div>
                 </div>
-                <div class="detail-field">
-                    <div class="field-label">🔎 NOTA FARMACÉUTICA</div>
-                    <div class="field-value">💡 Contiene: ${escapeHtml(medicamento.sustancias.split(',').length)} componente(s) activo(s). Verifique condiciones de almacenamiento.</div>
+                <div style="margin-top: 0.5rem;">
+                    <button class="btn-primary" style="width:100%;" onclick="editarMedicamentoDesdeFormulario('${med.id}')">✏️ Editar este medicamento</button>
                 </div>
             </div>
         `;
     }
-
-    // Función que aplica la búsqueda y actualiza tabla, además muestra tooltip contextual si el usuario busca
-    function aplicarBusqueda() {
+    
+    function renderizarTablaVacia() {
+        const tbody = document.getElementById('tableBody');
+        if (!tbody) return;
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="empty-state">
+                    <h3>📭 No hay medicamentos cargados</h3>
+                    <p>Para comenzar, importa un archivo TXT o agrega un medicamento</p>
+                </td>
+            </tr>
+        `;
+        document.getElementById('detailContent').innerHTML = `
+            <div style="text-align: center; color: #6c757d;">
+                💡 Haz clic en cualquier medicamento de la tabla<br>para ver toda su información aquí
+            </div>
+        `;
+    }
+    
+    function renderizarTabla() {
+        if (medicamentos.length === 0) {
+            renderizarTablaVacia();
+            return;
+        }
+        
         const searchInput = document.getElementById('searchInput');
         const query = searchInput ? searchInput.value : '';
         
-        // Si el usuario pulsa buscar sin texto, también mostramos todo.
-        const filtrados = buscarMedicamentos(query);
-        renderizarTabla(filtrados);
-        
-        // Al buscar, si hay resultados, NO borramos el detalle a menos que queramos; pero para UX limpiamos la selección activa
-        // Eliminar clase activa de todas las filas porque la selección previa ya no corresponde (opcional)
-        document.querySelectorAll('#tableBody tr').forEach(tr => tr.classList.remove('active-row'));
-        
-        // Si no hay resultados, mostramos mensaje en el panel lateral para no dejar info obsoleta
-        if (filtrados.length === 0) {
-            const detailContainer = document.getElementById('detailContent');
-            if (detailContainer) {
-                detailContainer.innerHTML = `<div class="empty-detail">🔎 Sin coincidencias<br>Selecciona un medicamento de la lista</div>`;
-            }
-        } else {
-            // Opcional: limpiar el panel de detalle solo si estaba vacío o con selección anterior, pero lo dejamos neutro
-            // Para mejor experiencia no reseteamos automáticamente a menos que el usuario quiera.
-            const currentDetail = document.getElementById('detailContent')?.innerText || '';
-            if (currentDetail.includes("Selecciona un medicamento") || currentDetail.includes("Sin coincidencias")) {
-                // No hacemos nada, esperamos a que el usuario haga clic
-            }
+        let datosMostrar = [...medicamentos];
+        if (query && query.trim() !== "") {
+            const palabras = query.toLowerCase().split(/\s+/).filter(p => p.length > 0);
+            datosMostrar = medicamentos.filter(med => {
+                const textoCompleto = (med.nombre + " " + med.sustancias).toLowerCase();
+                return palabras.every(palabra => textoCompleto.includes(palabra));
+            });
         }
+        
+        const tbody = document.getElementById('tableBody');
+        if (!tbody) return;
+        
+        if (datosMostrar.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="empty-state">🔍 No se encontraron medicamentos con esa búsqueda</td></tr>`;
+            return;
+        }
+        
+        let html = '';
+        datosMostrar.forEach(med => {
+            html += `
+                <tr data-id="${med.id}" style="cursor: pointer;">
+                    <td><input type="text" class="inline-input" value="${escapeHtml(med.nombre)}" oninput="autoGuardarCambios()"></td>
+                    <td><input type="date" class="inline-date" value="${med.caducidad || ''}" onchange="autoGuardarCambios()"></td>
+                    <td><textarea class="inline-textarea" oninput="autoGuardarCambios()">${escapeHtml(med.sustancias)}</textarea></td>
+                    <td><input type="number" class="inline-number" value="${med.cantidad}" oninput="autoGuardarCambios()"></td>
+                    <td onclick="event.stopPropagation()">
+                        <button class="edit-btn" onclick="editarMedicamentoDesdeFormulario('${med.id}')">✏️ Editar</button>
+                        <button class="delete-btn" onclick="eliminarMedicamento('${med.id}')">🗑️ Eliminar</button>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+        
+        const filas = document.querySelectorAll('#tableBody tr');
+        filas.forEach(fila => {
+            fila.addEventListener('click', function(e) {
+                if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                const id = this.getAttribute('data-id');
+                const medicamento = medicamentos.find(m => m.id === id);
+                if (medicamento) {
+                    mostrarDetalleCompleto(medicamento);
+                    document.querySelectorAll('#tableBody tr').forEach(r => r.classList.remove('active-row'));
+                    this.classList.add('active-row');
+                }
+            });
+        });
     }
-
-    // Botón borrar búsqueda: limpia el input, resetea tabla completa y borra el texto del recuadro.
+    
+    function aplicarBusqueda() {
+        renderizarTabla();
+    }
+    
     function limpiarBusqueda() {
-        const searchInput = document.getElementById('searchInput');
-        if (searchInput) {
-            searchInput.value = '';
-        }
-        // Mostrar todos los medicamentos de nuevo
-        renderizarTabla(medicamentosData);
-        // Eliminar clase activa de cualquier fila
-        document.querySelectorAll('#tableBody tr').forEach(tr => tr.classList.remove('active-row'));
-        // Además, reseteamos el panel lateral a mensaje neutral (pero sin borrar si hay algo? mejor a estado inicial)
-        const detailContainer = document.getElementById('detailContent');
-        if (detailContainer) {
-            detailContainer.innerHTML = `<div class="empty-detail">💡 Selecciona un medicamento<br>haciendo clic en su fila</div>`;
-        }
-        // Opcional: enfocar input
-        searchInput?.focus();
+        document.getElementById('searchInput').value = '';
+        renderizarTabla();
     }
-
-    // Mostrar texto de ayuda en placeholder cuando se hace foco? Ya está. Además, agregar un tooltip momentáneo para sugerir el formato.
-    function mostrarSugerenciaBusqueda() {
-        const searchInput = document.getElementById('searchInput');
-        if (searchInput && !searchInput.value) {
-            // Pequeño efecto de aviso: no invasivo.
-            const originalPlaceholder = searchInput.getAttribute('placeholder');
-            searchInput.setAttribute('placeholder', '💡 Teclea sustancias o nombre SIN comas (ej: paracetamol fenilefrina)');
-            setTimeout(() => {
-                if (searchInput.getAttribute('placeholder') === '💡 Teclea sustancias o nombre SIN comas (ej: paracetamol fenilefrina)') {
-                    searchInput.setAttribute('placeholder', originalPlaceholder || 'Ej: paracetamol fenilefrina o Exalver');
-                }
-            }, 3000);
-        }
-    }
-
-    // Configurar eventos: lupa, enter, botón borrar, y sugerencia al hacer clic en la lupa.
-    function setupEventos() {
-        const lupa = document.getElementById('lupaButton');
-        const clearBtn = document.getElementById('clearSearchBtn');
-        const searchInput = document.getElementById('searchInput');
-
-        if (lupa) {
-            lupa.addEventListener('click', (e) => {
-                e.preventDefault();
-                aplicarBusqueda();
-                mostrarSugerenciaBusqueda();   // muestra un tip amigable
-            });
-        }
-        if (clearBtn) {
-            clearBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                limpiarBusqueda();
-            });
-        }
-        if (searchInput) {
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    aplicarBusqueda();
-                    mostrarSugerenciaBusqueda();
-                }
-            });
-            // Búsqueda en tiempo real opcional con debounce suave (mejora UX)
-            let deb;
-            searchInput.addEventListener('input', () => {
-                clearTimeout(deb);
-                deb = setTimeout(() => {
-                    aplicarBusqueda();
-                }, 280);
-            });
-        }
-    }
-
-    // Inicialización
+    
+    // ==================== INICIALIZACIÓN ====================
     function init() {
-        renderizarTabla(medicamentosData);
-        setupEventos();
-        // Texto adicional en consola amigable
-        console.log("✅ Tabla con búsqueda flexible por palabras desordenadas + detalle al hacer clic");
+        cargarDatosLocal();
+        
+        document.getElementById('guardarBtn').addEventListener('click', guardarMedicamento);
+        document.getElementById('cancelarBtn').addEventListener('click', limpiarFormulario);
+        document.getElementById('addNewBtn').addEventListener('click', agregarNuevoMedicamento);
+        document.getElementById('searchBtn').addEventListener('click', aplicarBusqueda);
+        document.getElementById('clearSearchBtn').addEventListener('click', limpiarBusqueda);
+        document.getElementById('exportOnlyBtn').addEventListener('click', () => exportarInventarioCompleto(true));
+        
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') aplicarBusqueda();
+        });
+        
+        const fileInput = document.getElementById('importFile');
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                importarInventarioDesdeTXT(e.target.files[0]);
+                fileInput.value = '';
+            }
+        });
     }
-
+    
+    window.editarMedicamentoDesdeFormulario = editarMedicamentoDesdeFormulario;
+    window.eliminarMedicamento = eliminarMedicamento;
+    window.autoGuardarCambios = autoGuardarCambios;
+    
     init();
 </script>
 </body>
