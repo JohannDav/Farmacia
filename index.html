@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Farmacia Familiar QGH| Auto-exportación al guardar</title>
+    <title>Farmacia Familiar QGH | Auto-exportación al guardar</title>
     <style>
         * {
             margin: 0;
@@ -74,7 +74,7 @@
             font-size: 0.9rem;
         }
 
-        .form-group input, .form-group textarea {
+        .form-group input, .form-group textarea, .form-group select {
             padding: 0.7rem;
             border: 1px solid #cbd5e1;
             border-radius: 12px;
@@ -163,7 +163,7 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 0.85rem;
-            min-width: 700px;
+            min-width: 800px;
         }
 
         .inventory-table th {
@@ -222,6 +222,15 @@
             border-radius: 8px;
             font-size: 0.85rem;
         }
+        .inline-select {
+            width: 100%;
+            padding: 0.4rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            background: white;
+        }
 
         .edit-btn, .delete-btn {
             padding: 0.3rem 0.7rem;
@@ -274,6 +283,16 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
+        .piso-badge {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
         @keyframes slideIn {
             from {
                 transform: translateX(100%);
@@ -310,16 +329,17 @@
             <table class="inventory-table" id="inventoryTable">
                 <thead>
                     <tr>
-                        <th style="width: 20%">Nombre comercial del medicamento</th>
-                        <th style="width: 12%">Fecha de caducidad</th>
-                        <th style="width: 45%">Sustancias (composición)</th>
-                        <th style="width: 13%">Cantidad</th>
-                        <th style="width: 10%">Acciones</th>
+                        <th style="width: 18%">Nombre comercial</th>
+                        <th style="width: 10%">Caducidad</th>
+                        <th style="width: 40%">Sustancias</th>
+                        <th style="width: 10%">Cantidad</th>
+                        <th style="width: 10%">Piso</th>
+                        <th style="width: 12%">Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
                     <tr>
-                        <td colspan="5" class="empty-state">
+                        <td colspan="6" class="empty-state">
                             <h3>📭 No hay medicamentos cargados</h3>
                             <p>Para comenzar, importa un archivo TXT con el inventario</p>
                             <p style="margin-top: 1rem;">👇 Usa el botón "Importar archivo TXT" en el panel lateral</p>
@@ -359,6 +379,13 @@
                 <div class="form-group">
                     <label>📦 Cantidad en inventario *</label>
                     <input type="number" id="medCantidad" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>🏢 Piso donde se almacena *</label>
+                    <select id="medPiso">
+                        <option value="Piso 1">Piso 1</option>
+                        <option value="Piso 2">Piso 2</option>
+                    </select>
                 </div>
                 <div class="button-group">
                     <button id="guardarBtn" class="btn-primary">💾 Guardar y exportar TXT</button>
@@ -466,6 +493,7 @@
             contenido += `Fecha de caducidad: ${med.caducidad}\n`;
             contenido += `Sustancias: ${med.sustancias}\n`;
             contenido += `Cantidad: ${med.cantidad}\n`;
+            contenido += `Piso: ${med.piso || 'Piso 1'}\n`;
             contenido += `------------------------------------------------\n`;
         });
         
@@ -528,6 +556,9 @@
                     const cantStr = linea.replace('Cantidad:', '').trim();
                     medicamentoActual.cantidad = parseInt(cantStr) || 0;
                 }
+                else if (linea.startsWith('Piso:')) {
+                    medicamentoActual.piso = linea.replace('Piso:', '').trim();
+                }
             }
             
             if (dentroDeMedicamento && medicamentoActual.nombre && medicamentoActual.sustancias) {
@@ -537,6 +568,7 @@
             if (nuevosMedicamentos.length > 0) {
                 nuevosMedicamentos.forEach(med => {
                     if (!med.id) med.id = generateId();
+                    if (!med.piso) med.piso = 'Piso 1';
                 });
                 
                 medicamentos = nuevosMedicamentos;
@@ -556,6 +588,7 @@
         const caducidad = document.getElementById('medCaducidad').value;
         const sustancias = document.getElementById('medSustancias').value.trim();
         const cantidad = parseInt(document.getElementById('medCantidad').value);
+        const piso = document.getElementById('medPiso').value;
         
         if (!nombre || !caducidad || !sustancias || isNaN(cantidad)) {
             mostrarToast('❌ Completa todos los campos', 'error');
@@ -566,7 +599,7 @@
             // Editar existente
             const index = medicamentos.findIndex(m => m.id === editandoId);
             if (index !== -1) {
-                medicamentos[index] = { ...medicamentos[index], nombre, caducidad, sustancias, cantidad };
+                medicamentos[index] = { ...medicamentos[index], nombre, caducidad, sustancias, cantidad, piso };
                 guardarDatosLocal();
                 mostrarToast(`✅ "${nombre}" actualizado`);
             }
@@ -574,7 +607,7 @@
             document.querySelector('.form-header h3').innerHTML = '✏️ Agregar / Editar medicamento';
         } else {
             // Agregar nuevo
-            const nuevoMed = { id: generateId(), nombre, caducidad, sustancias, cantidad };
+            const nuevoMed = { id: generateId(), nombre, caducidad, sustancias, cantidad, piso };
             medicamentos.push(nuevoMed);
             guardarDatosLocal();
             mostrarToast(`✅ "${nombre}" agregado al inventario`);
@@ -602,6 +635,7 @@
         document.getElementById('medCaducidad').value = med.caducidad;
         document.getElementById('medSustancias').value = med.sustancias;
         document.getElementById('medCantidad').value = med.cantidad;
+        document.getElementById('medPiso').value = med.piso || 'Piso 1';
         document.querySelector('.form-header h3').innerHTML = '✏️ Editando medicamento';
         document.querySelector('.form-panel').scrollIntoView({ behavior: 'smooth' });
     }
@@ -626,6 +660,7 @@
         document.getElementById('medCaducidad').value = '';
         document.getElementById('medSustancias').value = '';
         document.getElementById('medCantidad').value = '';
+        document.getElementById('medPiso').value = 'Piso 1';
         editandoId = null;
         document.querySelector('.form-header h3').innerHTML = '✏️ Agregar / Editar medicamento';
     }
@@ -644,12 +679,14 @@
             const fechaInput = fila.querySelector('.inline-date');
             const sustanciasTextarea = fila.querySelector('.inline-textarea');
             const cantidadInput = fila.querySelector('.inline-number');
+            const pisoSelect = fila.querySelector('.inline-select');
             
             if (nombreInput && sustanciasTextarea) {
                 const nombre = nombreInput.value.trim();
                 const caducidad = fechaInput ? fechaInput.value : "2025-12-31";
                 const sustancias = sustanciasTextarea.value.trim();
                 const cantidad = cantidadInput ? parseInt(cantidadInput.value) || 0 : 0;
+                const piso = pisoSelect ? pisoSelect.value : 'Piso 1';
                 
                 if (nombre && sustancias) {
                     nuevosMedicamentos.push({
@@ -657,7 +694,8 @@
                         nombre: nombre,
                         caducidad: caducidad,
                         sustancias: sustancias,
-                        cantidad: cantidad
+                        cantidad: cantidad,
+                        piso: piso
                     });
                 }
             }
@@ -719,6 +757,10 @@
                     <strong style="color: #1e3c72; font-size: 0.7rem; text-transform: uppercase;">📦 STOCK EN INVENTARIO</strong>
                     <div style="margin-top: 0.3rem;"><span style="background: #e0f2e9; padding: 0.3rem 1rem; border-radius: 40px; font-weight: 600;">${med.cantidad} unidades</span></div>
                 </div>
+                <div>
+                    <strong style="color: #1e3c72; font-size: 0.7rem; text-transform: uppercase;">🏢 UBICACIÓN (PISO)</strong>
+                    <div style="margin-top: 0.3rem;"><span class="piso-badge">${escapeHtml(med.piso || 'Piso 1')}</span></div>
+                </div>
                 <div style="margin-top: 0.5rem;">
                     <button class="btn-primary" style="width:100%;" onclick="editarMedicamentoDesdeFormulario('${med.id}')">✏️ Editar este medicamento</button>
                 </div>
@@ -731,7 +773,7 @@
         if (!tbody) return;
         tbody.innerHTML = `
             <tr>
-                <td colspan="5" class="empty-state">
+                <td colspan="6" class="empty-state">
                     <h3>📭 No hay medicamentos cargados</h3>
                     <p>Para comenzar, importa un archivo TXT o agrega un medicamento</p>
                 </td>
@@ -757,7 +799,7 @@
         if (query && query.trim() !== "") {
             const palabras = query.toLowerCase().split(/\s+/).filter(p => p.length > 0);
             datosMostrar = medicamentos.filter(med => {
-                const textoCompleto = (med.nombre + " " + med.sustancias).toLowerCase();
+                const textoCompleto = (med.nombre + " " + med.sustancias + " " + (med.piso || '')).toLowerCase();
                 return palabras.every(palabra => textoCompleto.includes(palabra));
             });
         }
@@ -766,7 +808,7 @@
         if (!tbody) return;
         
         if (datosMostrar.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="empty-state">🔍 No se encontraron medicamentos con esa búsqueda</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="empty-state">🔍 No se encontraron medicamentos con esa búsqueda</td></tr>`;
             return;
         }
         
@@ -778,6 +820,12 @@
                     <td><input type="date" class="inline-date" value="${med.caducidad || ''}" onchange="autoGuardarCambios()"></td>
                     <td><textarea class="inline-textarea" oninput="autoGuardarCambios()">${escapeHtml(med.sustancias)}</textarea></td>
                     <td><input type="number" class="inline-number" value="${med.cantidad}" oninput="autoGuardarCambios()"></td>
+                    <td>
+                        <select class="inline-select" onchange="autoGuardarCambios()">
+                            <option value="Piso 1" ${med.piso === 'Piso 1' ? 'selected' : ''}>Piso 1</option>
+                            <option value="Piso 2" ${med.piso === 'Piso 2' ? 'selected' : ''}>Piso 2</option>
+                        </select>
+                    </td>
                     <td onclick="event.stopPropagation()">
                         <button class="edit-btn" onclick="editarMedicamentoDesdeFormulario('${med.id}')">✏️ Editar</button>
                         <button class="delete-btn" onclick="eliminarMedicamento('${med.id}')">🗑️ Eliminar</button>
@@ -790,7 +838,7 @@
         const filas = document.querySelectorAll('#tableBody tr');
         filas.forEach(fila => {
             fila.addEventListener('click', function(e) {
-                if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
                 const id = this.getAttribute('data-id');
                 const medicamento = medicamentos.find(m => m.id === id);
                 if (medicamento) {
