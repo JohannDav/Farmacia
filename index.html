@@ -163,7 +163,7 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 0.85rem;
-            min-width: 800px;
+            min-width: 900px;
         }
 
         .inventory-table th {
@@ -190,46 +190,21 @@
             border-left: 3px solid #2c5f8a;
         }
 
-        .inline-input {
-            width: 100%;
-            padding: 0.4rem;
-            border: 1px solid #cbd5e1;
+        /* Estilos para celdas de solo lectura */
+        .readonly-cell {
+            padding: 0.4rem 0.6rem;
+            background: #f8fafc;
             border-radius: 8px;
+            display: block;
+            min-height: 32px;
+            color: #1e293b;
             font-size: 0.85rem;
-            font-family: inherit;
+            word-break: break-word;
         }
-        .inline-textarea {
-            width: 100%;
-            padding: 0.4rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-family: inherit;
-            resize: vertical;
-            min-height: 50px;
-        }
-        .inline-date {
-            width: 100%;
-            padding: 0.4rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 0.85rem;
-        }
-        .inline-number {
-            width: 100%;
-            padding: 0.4rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 0.85rem;
-        }
-        .inline-select {
-            width: 100%;
-            padding: 0.4rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-family: inherit;
-            background: white;
+
+        .readonly-cell.piso-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
         }
 
         .edit-btn, .delete-btn {
@@ -293,6 +268,64 @@
             font-size: 0.75rem;
         }
 
+        .piso-badge.pb { background: #fef3c7; color: #92400e; }
+        .piso-badge.piso1 { background: #dbeafe; color: #1e40af; }
+        .piso-badge.piso2 { background: #d1fae5; color: #065f46; }
+
+        .tipo-badge {
+            background: #e0e7ff;
+            color: #4338ca;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        /* Estados de caducidad */
+        .estado-vencido { background-color: #1a1a1a !important; color: white !important; }
+        .estado-vencido td { background-color: #1a1a1a !important; color: white !important; }
+        .estado-vencido td .readonly-cell { color: white !important; background: #2a2a2a !important; }
+        .estado-vencido td .piso-badge { color: white !important; }
+        .estado-vencido td .tipo-badge { color: white !important; }
+        .estado-vencido td .edit-btn,
+        .estado-vencido td .delete-btn { opacity: 0.6; }
+
+        .estado-critico { background-color: #fee2e2 !important; }
+        .estado-critico td { background-color: #fee2e2 !important; }
+
+        .estado-aviso { background-color: #ffedd5 !important; }
+        .estado-aviso td { background-color: #ffedd5 !important; }
+
+        .estado-normal { background-color: transparent !important; }
+
+        /* Leyenda de colores */
+        .leyenda {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            padding: 0.5rem 1rem;
+            background: #f1f5f9;
+            border-radius: 12px;
+            margin: 0.5rem 0;
+        }
+        .leyenda-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+        }
+        .leyenda-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+        }
+        .leyenda-color.vencido { background: #1a1a1a; }
+        .leyenda-color.critico { background: #fee2e2; border-color: #ef4444; }
+        .leyenda-color.aviso { background: #ffedd5; border-color: #f59e0b; }
+        .leyenda-color.normal { background: #ffffff; border-color: #10b981; }
+
         @keyframes slideIn {
             from {
                 transform: translateX(100%);
@@ -326,20 +359,41 @@
             </div>
         </div>
         <div class="table-container">
+            <!-- Leyenda de colores -->
+            <div class="leyenda" id="leyendaColores">
+                <span style="font-weight:600; font-size:0.8rem;">📊 Leyenda de colores:</span>
+                <div class="leyenda-item">
+                    <span class="leyenda-color vencido"></span>
+                    <span>Vencido (negro)</span>
+                </div>
+                <div class="leyenda-item">
+                    <span class="leyenda-color critico"></span>
+                    <span>Caduca en menos de 30 días (rojo)</span>
+                </div>
+                <div class="leyenda-item">
+                    <span class="leyenda-color aviso"></span>
+                    <span>Caduca en 30-90 días (naranja)</span>
+                </div>
+                <div class="leyenda-item">
+                    <span class="leyenda-color normal"></span>
+                    <span>Más de 90 días (normal)</span>
+                </div>
+            </div>
             <table class="inventory-table" id="inventoryTable">
                 <thead>
                     <tr>
-                        <th style="width: 18%">Nombre comercial</th>
-                        <th style="width: 10%">Caducidad</th>
-                        <th style="width: 40%">Sustancias</th>
-                        <th style="width: 10%">Cantidad</th>
-                        <th style="width: 10%">Piso</th>
-                        <th style="width: 12%">Acciones</th>
+                        <th style="width: 14%">Nombre comercial</th>
+                        <th style="width: 8%">Caducidad</th>
+                        <th style="width: 8%">Tipo</th>
+                        <th style="width: 32%">Sustancias</th>
+                        <th style="width: 12%">Cantidad / Dosis</th>
+                        <th style="width: 8%">Piso</th>
+                        <th style="width: 18%">Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
                     <tr>
-                        <td colspan="6" class="empty-state">
+                        <td colspan="7" class="empty-state">
                             <h3>📭 No hay medicamentos cargados</h3>
                             <p>Para comenzar, importa un archivo TXT con el inventario</p>
                             <p style="margin-top: 1rem;">👇 Usa el botón "Importar archivo TXT" en el panel lateral</p>
@@ -350,7 +404,7 @@
         </div>
         <div class="search-header" style="border-top: 1px solid #e2e8f0;">
             <div style="font-size: 0.75rem; color: #475569;">
-                📋 Puedes editar directamente en la tabla o usar el formulario. Al guardar, se descarga automáticamente el TXT.
+                📋 Para editar un medicamento, usa el botón "✏️ Editar" en la tabla. Los cambios se hacen en el formulario de la derecha.
             </div>
             <div id="lastExportInfo" style="font-size: 0.7rem; color: #10b981;"></div>
         </div>
@@ -369,6 +423,13 @@
                     <input type="text" id="medNombre" placeholder="Ej: Exalver, Tempra Forte...">
                 </div>
                 <div class="form-group">
+                    <label>📋 Tipo de medicamento *</label>
+                    <select id="medTipo">
+                        <option value="Pastillas">Pastillas</option>
+                        <option value="Jarabe">Jarabe</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label>📅 Fecha de caducidad *</label>
                     <input type="date" id="medCaducidad">
                 </div>
@@ -376,15 +437,27 @@
                     <label>⚕️ Sustancias (composición completa) *</label>
                     <textarea id="medSustancias" placeholder="Ej: Paracetamol 500mg, Fenilefrina 5mg..."></textarea>
                 </div>
-                <div class="form-group">
-                    <label>📦 Cantidad en inventario *</label>
+                <div class="form-group" id="cantidadGroup">
+                    <label id="cantidadLabel">📦 Cantidad (número de pastillas) *</label>
                     <input type="number" id="medCantidad" placeholder="0">
+                </div>
+                <div class="form-group" id="jarabeGroup" style="display: none;">
+                    <label>🧪 Queda (redondear hacia abajo) *</label>
+                    <select id="medJarabe">
+                        <option value="Nuevo">Nuevo</option>
+                        <option value="4/5">4/5</option>
+                        <option value="3/4">3/4</option>
+                        <option value="1/2">1/2</option>
+                        <option value="1/3">1/3</option>
+                        <option value="1/4">1/4</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>🏢 Piso donde se almacena *</label>
                     <select id="medPiso">
-                        <option value="Piso 1">Piso 1</option>
-                        <option value="Piso 2">Piso 2</option>
+                        <option value="PB">PB (Planta Baja)</option>
+                        <option value="1">Piso 1</option>
+                        <option value="2">Piso 2</option>
                     </select>
                 </div>
                 <div class="button-group">
@@ -435,7 +508,7 @@
     // ==================== GESTIÓN DE DATOS ====================
     let medicamentos = [];
     let editandoId = null;
-    let autoSaveTimeout = null;
+    let modoEdicionActivo = false;
 
     function generateId() {
         return Date.now() + '-' + Math.random().toString(36).substr(2, 8);
@@ -490,10 +563,15 @@
             contenido += `[MEDICAMENTO ${index + 1}]\n`;
             contenido += `ID: ${med.id}\n`;
             contenido += `Nombre comercial: ${med.nombre}\n`;
+            contenido += `Tipo: ${med.tipo || 'Pastillas'}\n`;
             contenido += `Fecha de caducidad: ${med.caducidad}\n`;
             contenido += `Sustancias: ${med.sustancias}\n`;
-            contenido += `Cantidad: ${med.cantidad}\n`;
-            contenido += `Piso: ${med.piso || 'Piso 1'}\n`;
+            if (med.tipo === 'Jarabe') {
+                contenido += `Jarabe - Queda: ${med.jarabe || 'Nuevo'}\n`;
+            } else {
+                contenido += `Cantidad (pastillas): ${med.cantidad || 0}\n`;
+            }
+            contenido += `Piso: ${med.piso || 'PB'}\n`;
             contenido += `------------------------------------------------\n`;
         });
         
@@ -546,15 +624,21 @@
                 else if (linea.startsWith('Nombre comercial:')) {
                     medicamentoActual.nombre = linea.replace('Nombre comercial:', '').trim();
                 }
+                else if (linea.startsWith('Tipo:')) {
+                    medicamentoActual.tipo = linea.replace('Tipo:', '').trim();
+                }
                 else if (linea.startsWith('Fecha de caducidad:')) {
                     medicamentoActual.caducidad = linea.replace('Fecha de caducidad:', '').trim();
                 }
                 else if (linea.startsWith('Sustancias:')) {
                     medicamentoActual.sustancias = linea.replace('Sustancias:', '').trim();
                 }
-                else if (linea.startsWith('Cantidad:')) {
-                    const cantStr = linea.replace('Cantidad:', '').trim();
+                else if (linea.startsWith('Cantidad (pastillas):')) {
+                    const cantStr = linea.replace('Cantidad (pastillas):', '').trim();
                     medicamentoActual.cantidad = parseInt(cantStr) || 0;
+                }
+                else if (linea.startsWith('Jarabe - Queda:')) {
+                    medicamentoActual.jarabe = linea.replace('Jarabe - Queda:', '').trim();
                 }
                 else if (linea.startsWith('Piso:')) {
                     medicamentoActual.piso = linea.replace('Piso:', '').trim();
@@ -568,7 +652,9 @@
             if (nuevosMedicamentos.length > 0) {
                 nuevosMedicamentos.forEach(med => {
                     if (!med.id) med.id = generateId();
-                    if (!med.piso) med.piso = 'Piso 1';
+                    if (!med.tipo) med.tipo = 'Pastillas';
+                    if (!med.piso) med.piso = 'PB';
+                    if (med.tipo === 'Jarabe' && !med.jarabe) med.jarabe = 'Nuevo';
                 });
                 
                 medicamentos = nuevosMedicamentos;
@@ -585,29 +671,51 @@
     // ==================== CRUD CON FORMULARIO Y AUTO-EXPORTACIÓN ====================
     function guardarMedicamento() {
         const nombre = document.getElementById('medNombre').value.trim();
+        const tipo = document.getElementById('medTipo').value;
         const caducidad = document.getElementById('medCaducidad').value;
         const sustancias = document.getElementById('medSustancias').value.trim();
-        const cantidad = parseInt(document.getElementById('medCantidad').value);
         const piso = document.getElementById('medPiso').value;
         
-        if (!nombre || !caducidad || !sustancias || isNaN(cantidad)) {
+        let cantidad = 0;
+        let jarabe = null;
+        
+        if (tipo === 'Jarabe') {
+            jarabe = document.getElementById('medJarabe').value;
+        } else {
+            cantidad = parseInt(document.getElementById('medCantidad').value);
+        }
+        
+        if (!nombre || !caducidad || !sustancias) {
             mostrarToast('❌ Completa todos los campos', 'error');
             return;
         }
         
+        if (tipo === 'Pastillas' && isNaN(cantidad)) {
+            mostrarToast('❌ Ingresa la cantidad de pastillas', 'error');
+            return;
+        }
+        
+        const medicamentoData = {
+            nombre,
+            tipo,
+            caducidad,
+            sustancias,
+            piso,
+            ...(tipo === 'Jarabe' ? { jarabe } : { cantidad })
+        };
+        
         if (editandoId !== null) {
-            // Editar existente
             const index = medicamentos.findIndex(m => m.id === editandoId);
             if (index !== -1) {
-                medicamentos[index] = { ...medicamentos[index], nombre, caducidad, sustancias, cantidad, piso };
+                medicamentos[index] = { ...medicamentos[index], ...medicamentoData };
                 guardarDatosLocal();
                 mostrarToast(`✅ "${nombre}" actualizado`);
             }
             editandoId = null;
+            modoEdicionActivo = false;
             document.querySelector('.form-header h3').innerHTML = '✏️ Agregar / Editar medicamento';
         } else {
-            // Agregar nuevo
-            const nuevoMed = { id: generateId(), nombre, caducidad, sustancias, cantidad, piso };
+            const nuevoMed = { id: generateId(), ...medicamentoData };
             medicamentos.push(nuevoMed);
             guardarDatosLocal();
             mostrarToast(`✅ "${nombre}" agregado al inventario`);
@@ -615,14 +723,13 @@
         
         limpiarFormulario();
         renderizarTabla();
-        
-        // 🔥 AUTO-EXPORTAR después de guardar
         exportarInventarioCompleto(true);
     }
     
     function agregarNuevoMedicamento() {
         limpiarFormulario();
         editandoId = null;
+        modoEdicionActivo = false;
         document.querySelector('.form-header h3').innerHTML = '✏️ Agregar nuevo medicamento';
         document.getElementById('medNombre').focus();
     }
@@ -630,12 +737,26 @@
     function editarMedicamentoDesdeFormulario(id) {
         const med = medicamentos.find(m => m.id === id);
         if (!med) return;
+        
         editandoId = id;
+        modoEdicionActivo = true;
         document.getElementById('medNombre').value = med.nombre;
+        document.getElementById('medTipo').value = med.tipo || 'Pastillas';
         document.getElementById('medCaducidad').value = med.caducidad;
         document.getElementById('medSustancias').value = med.sustancias;
-        document.getElementById('medCantidad').value = med.cantidad;
-        document.getElementById('medPiso').value = med.piso || 'Piso 1';
+        document.getElementById('medPiso').value = med.piso || 'PB';
+        
+        // Mostrar/ocultar campos según tipo
+        if (med.tipo === 'Jarabe') {
+            document.getElementById('cantidadGroup').style.display = 'none';
+            document.getElementById('jarabeGroup').style.display = 'block';
+            document.getElementById('medJarabe').value = med.jarabe || 'Nuevo';
+        } else {
+            document.getElementById('cantidadGroup').style.display = 'block';
+            document.getElementById('jarabeGroup').style.display = 'none';
+            document.getElementById('medCantidad').value = med.cantidad || 0;
+        }
+        
         document.querySelector('.form-header h3').innerHTML = '✏️ Editando medicamento';
         document.querySelector('.form-panel').scrollIntoView({ behavior: 'smooth' });
     }
@@ -648,71 +769,40 @@
             medicamentos = medicamentos.filter(m => m.id !== id);
             guardarDatosLocal();
             mostrarToast(`🗑️ "${med.nombre}" eliminado`);
-            if (editandoId === id) limpiarFormulario();
+            if (editandoId === id) {
+                limpiarFormulario();
+                modoEdicionActivo = false;
+            }
             renderizarTabla();
-            // Auto-exportar después de eliminar
             exportarInventarioCompleto(true);
         }
     }
     
     function limpiarFormulario() {
         document.getElementById('medNombre').value = '';
+        document.getElementById('medTipo').value = 'Pastillas';
         document.getElementById('medCaducidad').value = '';
         document.getElementById('medSustancias').value = '';
         document.getElementById('medCantidad').value = '';
-        document.getElementById('medPiso').value = 'Piso 1';
+        document.getElementById('medPiso').value = 'PB';
+        document.getElementById('medJarabe').value = 'Nuevo';
+        document.getElementById('cantidadGroup').style.display = 'block';
+        document.getElementById('jarabeGroup').style.display = 'none';
         editandoId = null;
+        modoEdicionActivo = false;
         document.querySelector('.form-header h3').innerHTML = '✏️ Agregar / Editar medicamento';
     }
 
-    // ==================== ACTUALIZAR DESDE TABLA INLINE ====================
-    function actualizarMedicamentosDesdeTabla() {
-        const filas = document.querySelectorAll('#tableBody tr');
-        if (filas.length === 0 || (filas.length === 1 && filas[0].querySelector('.empty-state'))) return;
-        
-        const nuevosMedicamentos = [];
-        filas.forEach(fila => {
-            const id = fila.getAttribute('data-id');
-            if (!id) return;
-            
-            const nombreInput = fila.querySelector('.inline-input');
-            const fechaInput = fila.querySelector('.inline-date');
-            const sustanciasTextarea = fila.querySelector('.inline-textarea');
-            const cantidadInput = fila.querySelector('.inline-number');
-            const pisoSelect = fila.querySelector('.inline-select');
-            
-            if (nombreInput && sustanciasTextarea) {
-                const nombre = nombreInput.value.trim();
-                const caducidad = fechaInput ? fechaInput.value : "2025-12-31";
-                const sustancias = sustanciasTextarea.value.trim();
-                const cantidad = cantidadInput ? parseInt(cantidadInput.value) || 0 : 0;
-                const piso = pisoSelect ? pisoSelect.value : 'Piso 1';
-                
-                if (nombre && sustancias) {
-                    nuevosMedicamentos.push({
-                        id: id,
-                        nombre: nombre,
-                        caducidad: caducidad,
-                        sustancias: sustancias,
-                        cantidad: cantidad,
-                        piso: piso
-                    });
-                }
-            }
-        });
-        
-        if (nuevosMedicamentos.length > 0) {
-            medicamentos = nuevosMedicamentos;
-            guardarDatosLocal();
+    // Mostrar/ocultar campos según tipo de medicamento
+    document.getElementById('medTipo').addEventListener('change', function() {
+        if (this.value === 'Jarabe') {
+            document.getElementById('cantidadGroup').style.display = 'none';
+            document.getElementById('jarabeGroup').style.display = 'block';
+        } else {
+            document.getElementById('cantidadGroup').style.display = 'block';
+            document.getElementById('jarabeGroup').style.display = 'none';
         }
-    }
-
-    function autoGuardarCambios() {
-        if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
-        autoSaveTimeout = setTimeout(() => {
-            actualizarMedicamentosDesdeTabla();
-        }, 500);
-    }
+    });
 
     // ==================== RENDERIZADO ====================
     function formatearFecha(fechaISO) {
@@ -732,11 +822,50 @@
         });
     }
     
+    function obtenerClasePiso(piso) {
+        if (piso === 'PB') return 'pb';
+        if (piso === '1') return 'piso1';
+        if (piso === '2') return 'piso2';
+        return '';
+    }
+    
+    function obtenerEstadoCaducidad(fechaISO) {
+        if (!fechaISO) return 'normal';
+        const hoy = new Date();
+        hoy.setHours(0,0,0,0);
+        const fechaCad = new Date(fechaISO);
+        fechaCad.setHours(0,0,0,0);
+        const diffTime = fechaCad - hoy;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays < 0) return 'vencido';
+        if (diffDays <= 30) return 'critico';
+        if (diffDays <= 90) return 'aviso';
+        return 'normal';
+    }
+
     function mostrarDetalleCompleto(med) {
         const detailContainer = document.getElementById('detailContent');
         if (!detailContainer) return;
         
         const fechaLegible = formatearFecha(med.caducidad);
+        const clasePiso = obtenerClasePiso(med.piso || 'PB');
+        const etiquetaPiso = med.piso === 'PB' ? 'PB (Planta Baja)' : `Piso ${med.piso}`;
+        const estado = obtenerEstadoCaducidad(med.caducidad);
+        const estadoTexto = estado === 'vencido' ? '❌ VENCIDO' :
+                           estado === 'critico' ? '⚠️ Caduca en menos de 30 días' :
+                           estado === 'aviso' ? '⚡ Caduca en 30-90 días' : '✅ Vigente';
+        const estadoColor = estado === 'vencido' ? '#1a1a1a' :
+                           estado === 'critico' ? '#ef4444' :
+                           estado === 'aviso' ? '#f59e0b' : '#10b981';
+        
+        let cantidadTexto = '';
+        if (med.tipo === 'Jarabe') {
+            cantidadTexto = `Jarabe - Queda: ${med.jarabe || 'Nuevo'}`;
+        } else {
+            cantidadTexto = `${med.cantidad || 0} pastillas`;
+        }
+        
         detailContainer.innerHTML = `
             <div style="display:flex;flex-direction:column;gap:1.2rem;">
                 <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem;">
@@ -744,8 +873,15 @@
                     <div style="font-size: 1.2rem; font-weight: 700; color: #0c4a6e; margin-top: 0.3rem;">${escapeHtml(med.nombre)}</div>
                 </div>
                 <div>
+                    <strong style="color: #1e3c72; font-size: 0.7rem; text-transform: uppercase;">📋 TIPO</strong>
+                    <div style="margin-top: 0.3rem;"><span class="tipo-badge">${escapeHtml(med.tipo || 'Pastillas')}</span></div>
+                </div>
+                <div>
                     <strong style="color: #1e3c72; font-size: 0.7rem; text-transform: uppercase;">📅 FECHA DE CADUCIDAD</strong>
-                    <div style="margin-top: 0.3rem;"><span style="background: #fff1e0; padding: 0.3rem 0.8rem; border-radius: 20px;">${fechaLegible}</span></div>
+                    <div style="margin-top: 0.3rem;">
+                        <span style="background: #fff1e0; padding: 0.3rem 0.8rem; border-radius: 20px;">${fechaLegible}</span>
+                        <span style="margin-left: 0.5rem; color: ${estadoColor}; font-weight: 600;">${estadoTexto}</span>
+                    </div>
                 </div>
                 <div>
                     <strong style="color: #1e3c72; font-size: 0.7rem; text-transform: uppercase;">⚕️ COMPOSICIÓN COMPLETA</strong>
@@ -754,12 +890,12 @@
                     </div>
                 </div>
                 <div>
-                    <strong style="color: #1e3c72; font-size: 0.7rem; text-transform: uppercase;">📦 STOCK EN INVENTARIO</strong>
-                    <div style="margin-top: 0.3rem;"><span style="background: #e0f2e9; padding: 0.3rem 1rem; border-radius: 40px; font-weight: 600;">${med.cantidad} unidades</span></div>
+                    <strong style="color: #1e3c72; font-size: 0.7rem; text-transform: uppercase;">📦 DOSIS / CANTIDAD</strong>
+                    <div style="margin-top: 0.3rem;"><span style="background: #e0f2e9; padding: 0.3rem 1rem; border-radius: 40px; font-weight: 600;">${cantidadTexto}</span></div>
                 </div>
                 <div>
                     <strong style="color: #1e3c72; font-size: 0.7rem; text-transform: uppercase;">🏢 UBICACIÓN (PISO)</strong>
-                    <div style="margin-top: 0.3rem;"><span class="piso-badge">${escapeHtml(med.piso || 'Piso 1')}</span></div>
+                    <div style="margin-top: 0.3rem;"><span class="piso-badge ${clasePiso}">${escapeHtml(etiquetaPiso)}</span></div>
                 </div>
                 <div style="margin-top: 0.5rem;">
                     <button class="btn-primary" style="width:100%;" onclick="editarMedicamentoDesdeFormulario('${med.id}')">✏️ Editar este medicamento</button>
@@ -773,7 +909,7 @@
         if (!tbody) return;
         tbody.innerHTML = `
             <tr>
-                <td colspan="6" class="empty-state">
+                <td colspan="7" class="empty-state">
                     <h3>📭 No hay medicamentos cargados</h3>
                     <p>Para comenzar, importa un archivo TXT o agrega un medicamento</p>
                 </td>
@@ -799,7 +935,7 @@
         if (query && query.trim() !== "") {
             const palabras = query.toLowerCase().split(/\s+/).filter(p => p.length > 0);
             datosMostrar = medicamentos.filter(med => {
-                const textoCompleto = (med.nombre + " " + med.sustancias + " " + (med.piso || '')).toLowerCase();
+                const textoCompleto = (med.nombre + " " + med.sustancias + " " + (med.piso || '') + " " + (med.tipo || '')).toLowerCase();
                 return palabras.every(palabra => textoCompleto.includes(palabra));
             });
         }
@@ -808,24 +944,35 @@
         if (!tbody) return;
         
         if (datosMostrar.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="empty-state">🔍 No se encontraron medicamentos con esa búsqueda</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="empty-state">🔍 No se encontraron medicamentos con esa búsqueda</td></tr>`;
             return;
         }
         
         let html = '';
         datosMostrar.forEach(med => {
+            const clasePiso = obtenerClasePiso(med.piso || 'PB');
+            const estado = obtenerEstadoCaducidad(med.caducidad);
+            const claseEstado = estado === 'vencido' ? 'estado-vencido' :
+                               estado === 'critico' ? 'estado-critico' :
+                               estado === 'aviso' ? 'estado-aviso' : 'estado-normal';
+            
+            let cantidadDisplay = '';
+            if (med.tipo === 'Jarabe') {
+                cantidadDisplay = `<span class="readonly-cell">Jarabe - ${med.jarabe || 'Nuevo'}</span>`;
+            } else {
+                cantidadDisplay = `<span class="readonly-cell">${med.cantidad || 0} pastillas</span>`;
+            }
+            
+            const etiquetaPiso = med.piso === 'PB' ? 'PB' : med.piso;
+            
             html += `
-                <tr data-id="${med.id}" style="cursor: pointer;">
-                    <td><input type="text" class="inline-input" value="${escapeHtml(med.nombre)}" oninput="autoGuardarCambios()"></td>
-                    <td><input type="date" class="inline-date" value="${med.caducidad || ''}" onchange="autoGuardarCambios()"></td>
-                    <td><textarea class="inline-textarea" oninput="autoGuardarCambios()">${escapeHtml(med.sustancias)}</textarea></td>
-                    <td><input type="number" class="inline-number" value="${med.cantidad}" oninput="autoGuardarCambios()"></td>
-                    <td>
-                        <select class="inline-select" onchange="autoGuardarCambios()">
-                            <option value="Piso 1" ${med.piso === 'Piso 1' ? 'selected' : ''}>Piso 1</option>
-                            <option value="Piso 2" ${med.piso === 'Piso 2' ? 'selected' : ''}>Piso 2</option>
-                        </select>
-                    </td>
+                <tr data-id="${med.id}" style="cursor: pointer;" class="${claseEstado}">
+                    <td><span class="readonly-cell">${escapeHtml(med.nombre)}</span></td>
+                    <td><span class="readonly-cell">${formatearFecha(med.caducidad)}</span></td>
+                    <td><span class="tipo-badge">${escapeHtml(med.tipo || 'Pastillas')}</span></td>
+                    <td><span class="readonly-cell">${escapeHtml(med.sustancias)}</span></td>
+                    <td>${cantidadDisplay}</td>
+                    <td><span class="piso-badge ${clasePiso}">${etiquetaPiso}</span></td>
                     <td onclick="event.stopPropagation()">
                         <button class="edit-btn" onclick="editarMedicamentoDesdeFormulario('${med.id}')">✏️ Editar</button>
                         <button class="delete-btn" onclick="eliminarMedicamento('${med.id}')">🗑️ Eliminar</button>
@@ -838,7 +985,7 @@
         const filas = document.querySelectorAll('#tableBody tr');
         filas.forEach(fila => {
             fila.addEventListener('click', function(e) {
-                if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+                if (e.target.tagName === 'BUTTON') return;
                 const id = this.getAttribute('data-id');
                 const medicamento = medicamentos.find(m => m.id === id);
                 if (medicamento) {
@@ -885,7 +1032,6 @@
     
     window.editarMedicamentoDesdeFormulario = editarMedicamentoDesdeFormulario;
     window.eliminarMedicamento = eliminarMedicamento;
-    window.autoGuardarCambios = autoGuardarCambios;
     
     init();
 </script>
